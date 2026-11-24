@@ -13,7 +13,7 @@
 # MAGIC |---|---|---|
 # MAGIC | Cómputo | Serverless | Único disponible en Free Edition; arranca en segundos y se paga por uso |
 # MAGIC | Parámetros | `dia` (1–3), `inyectar_error` (no/si) | Simular cada día de juego y la demo de error |
-# MAGIC | Reintentos | 1 reintento en Silver, SCD2 y Gold | Fallos transitorios. La ingesta no se reintenta: un fichero corrupto debe parar el Job |
+# MAGIC | Reintentos | 1 reintento en ingesta, Silver, SCD2 y Gold | Fallos transitorios y *schema drift*: Auto Loader detiene el stream al ver una columna nueva y el reintento continúa con el esquema actualizado (práctica recomendada por Databricks) |
 # MAGIC | Timeout | 30 min por tarea | Evita ejecuciones colgadas |
 # MAGIC | Programación | Diaria 06:00 (Europe/Madrid), **en pausa** | Lista para producción sin consumir recursos |
 # MAGIC | Notificaciones | Email al propietario si falla | Monitorización |
@@ -52,7 +52,7 @@ configuracion = dict(
     name=NOMBRE,
     description="Simula un día de juego de Respawn: ingesta Bronze → calidad Silver → SCD2 → marts Gold → validaciones",
     tasks=[
-        tarea("01_ingesta_bronze", reintentos=0),
+        tarea("01_ingesta_bronze", reintentos=1),   # el reintento completa el schema drift de Auto Loader
         tarea("02_silver_calidad", "01_ingesta_bronze"),
         tarea("03_merge_scd2", "02_silver_calidad"),
         tarea("04_gold_marts", "03_merge_scd2"),

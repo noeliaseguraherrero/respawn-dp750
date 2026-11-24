@@ -11,7 +11,7 @@ El Job se crea desde el repositorio ejecutando el notebook **`jobs/crear_job.py`
 
 | Tarea | Notebook | Reintentos |
 |---|---|---|
-| 01_ingesta_bronze | Publica el día N, control de ficheros corruptos (cuarentena) y Auto Loader | 0 |
+| 01_ingesta_bronze | Publica el día N, control de ficheros corruptos (cuarentena) y Auto Loader | 1 (necesario para el schema drift) |
 | 02_silver_calidad | Limpieza, reglas R1–R6, rechazos y métricas | 1 |
 | 03_merge_scd2 | Dimensión de jugadores SCD2 | 1 |
 | 04_gold_marts | Data marts de economía, retención y competitivo | 1 |
@@ -42,3 +42,10 @@ El Job se crea desde el repositorio ejecutando el notebook **`jobs/crear_job.py`
 
 1. Ejecutar `sql/01_catalogo_y_esquemas.sql` y `notebooks/00_preparar_volumen.py`.
 2. Ejecutar `jobs/crear_job.py`.
+
+## Resultado de la demostración (24/11/2026)
+
+- Ejecución con `inyectar_error=si`: la tarea 01 falla con *ValueError: Ficheros corruptos enviados a cuarentena* y las tareas 02–06 quedan como *Upstream failed*.
+- *Repair run* con `inyectar_error=no`: el primer intento de la tarea 01 se detiene por el **schema drift** del día 3
+  (*Some streams terminated before this command could finish*): Auto Loader registra la columna nueva `version_juego` y para el stream.
+  El reintento automático continúa con el esquema actualizado y el resto del pipeline termina correctamente (10/10 validaciones OK).
