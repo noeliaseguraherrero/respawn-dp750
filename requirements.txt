@@ -1,3 +1,4 @@
 # Solo para ejecutar en local el generador de datos y los tests
 faker>=25.0
 pytest>=8.0
+pyspark==3.5.3   # solo para los tests locales (en Databricks ya viene incluido)

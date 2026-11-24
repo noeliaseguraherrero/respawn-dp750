@@ -120,34 +120,19 @@ print(f"Leídos: {leidos} · duplicados eliminados (R6): {duplicados}")
 
 # COMMAND ----------
 
-# Jugadores conocidos hasta el día N (registro de jugadores en Bronze)
+# Las reglas viven en src/reglas_calidad.py (componente reutilizable y probado con pytest)
+import os, sys
+sys.path.append(os.path.dirname(os.getcwd()))          # raíz del repositorio (Git folder)
+from src.reglas_calidad import evaluar_reglas, NOMBRES_REGLAS, DESCRIPCION_REGLAS
+reglas = NOMBRES_REGLAS
+
+# Jugadores conocidos hasta el día N (registro de jugadores en Bronze) y precios del catálogo
 jugadores = (spark.table(f"{C}.bronze.jugadores_raw")
              .filter(F.col("_dia_carga") <= DIA)
-             .select(F.trim("id_jugador").alias("_jugador_conocido")).distinct())
-precios = spark.table(f"{C}.silver.dim_articulo").select(
-    F.col("id_articulo").alias("_articulo"), F.col("precio_eur").alias("_precio"))
+             .select(F.trim("id_jugador").alias("id_jugador")))
+precios = spark.table(f"{C}.silver.dim_articulo").select("id_articulo", "precio_eur")
 
-evaluados = (eventos
-    .join(F.broadcast(jugadores), eventos.id_jugador == jugadores._jugador_conocido, "left")
-    .join(F.broadcast(precios), eventos.id_articulo == precios._articulo, "left"))
-
-reglas = {
-    "R1_id_nulo": F.col("id_evento").isNull() | F.col("id_jugador").isNull(),
-    "R2_fecha_futura": F.col("ts_evento").isNull() | (F.col("ts_evento") > F.current_timestamp()),
-    "R3_puntuacion_imposible": (F.col("tipo_evento") == "fin_partida") & (
-        (F.col("puntuacion") > F.col("duracion_seg") * 5) | (F.col("bajas") > 60)),
-    "R4_compra_invalida": (F.col("tipo_evento") == "compra") & (
-        F.col("_precio").isNull() | (F.col("importe_eur") <= 0) | (F.col("importe_eur") != F.col("_precio"))),
-    "R5_jugador_inexistente": F.col("id_jugador").isNotNull() & F.col("_jugador_conocido").isNull(),
-}
-
-incumplidas = F.array_compact(F.array(*[F.when(cond, F.lit(nombre)) for nombre, cond in reglas.items()]))
-evaluados = (evaluados
-             .withColumn("reglas_incumplidas", incumplidas)
-             # Con ANSI activado (serverless), element_at falla con un array vacío → se protege con when
-             .withColumn("motivo", F.when(F.size("reglas_incumplidas") > 0,
-                                          F.element_at("reglas_incumplidas", 1)))
-             .drop("_jugador_conocido", "_articulo", "_precio"))
+evaluados = evaluar_reglas(eventos, jugadores, precios)
 
 validos = evaluados.filter("motivo IS NULL").drop("reglas_incumplidas", "motivo")
 invalidos = evaluados.filter("motivo IS NOT NULL")

@@ -1,0 +1,24 @@
+============================= test session starts ==============================
+collecting ... collected 19 items
+
+tests/test_generador.py::test_es_reproducible PASSED                     [  5%]
+tests/test_generador.py::test_recuentos_coinciden_con_resumen PASSED     [ 10%]
+tests/test_generador.py::test_dia_2_tiene_los_errores_sembrados PASSED   [ 15%]
+tests/test_generador.py::test_eventos_validos_del_dia_1_cumplen_las_reglas PASSED [ 21%]
+tests/test_generador.py::test_dia_3_trae_columna_nueva PASSED            [ 26%]
+tests/test_generador.py::test_fichero_corrupto_tiene_lineas_no_validas PASSED [ 31%]
+tests/test_reglas_calidad.py::test_evento_valido_no_tiene_motivo PASSED  [ 36%]
+tests/test_reglas_calidad.py::test_compra_valida PASSED                  [ 42%]
+tests/test_reglas_calidad.py::test_cada_regla_detecta_su_error[fila0-R1_id_nulo] PASSED [ 47%]
+tests/test_reglas_calidad.py::test_cada_regla_detecta_su_error[fila1-R2_fecha_futura] PASSED [ 52%]
+tests/test_reglas_calidad.py::test_cada_regla_detecta_su_error[fila2-R3_puntuacion_imposible] PASSED [ 57%]
+tests/test_reglas_calidad.py::test_cada_regla_detecta_su_error[fila3-R3_puntuacion_imposible] PASSED [ 63%]
+tests/test_reglas_calidad.py::test_cada_regla_detecta_su_error[fila4-R4_compra_invalida] PASSED [ 68%]
+tests/test_reglas_calidad.py::test_cada_regla_detecta_su_error[fila5-R4_compra_invalida] PASSED [ 73%]
+tests/test_reglas_calidad.py::test_cada_regla_detecta_su_error[fila6-R4_compra_invalida] PASSED [ 78%]
+tests/test_reglas_calidad.py::test_cada_regla_detecta_su_error[fila7-R5_jugador_inexistente] PASSED [ 84%]
+tests/test_reglas_calidad.py::test_limite_exacto_de_puntuacion_es_valido PASSED [ 89%]
+tests/test_reglas_calidad.py::test_varias_reglas_y_prioridad PASSED      [ 94%]
+tests/test_reglas_calidad.py::test_detector_sobre_el_dia_2_generado PASSED [100%]
+
+============================= 19 passed in 15.79s ==============================
