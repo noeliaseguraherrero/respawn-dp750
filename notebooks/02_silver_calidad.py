@@ -88,7 +88,7 @@ eventos = (bronze.select(
         F.trim("id_evento").alias("id_evento"),
         F.trim("id_jugador").alias("id_jugador"),
         F.lower(F.trim("tipo_evento")).alias("tipo_evento"),                  # normalización
-        F.to_timestamp(F.col("ts_evento").cast("string")).alias("ts_evento"),  # tipo correcto
+        F.try_to_timestamp(F.col("ts_evento").cast("string")).alias("ts_evento"),  # tipo correcto (null si no es válida)
         F.trim("id_sesion").alias("id_sesion"),
         F.trim("plataforma").alias("plataforma"),
         F.col("detalle.id_partida").alias("id_partida"),                       # aplanar el struct
@@ -141,9 +141,10 @@ reglas = {
 incumplidas = F.array_compact(F.array(*[F.when(cond, F.lit(nombre)) for nombre, cond in reglas.items()]))
 evaluados = (evaluados
              .withColumn("reglas_incumplidas", incumplidas)
-             .withColumn("motivo", F.element_at("reglas_incumplidas", 1))
-             .drop("_jugador_conocido", "_articulo", "_precio")
-             .cache())
+             # Con ANSI activado (serverless), element_at falla con un array vacío → se protege con when
+             .withColumn("motivo", F.when(F.size("reglas_incumplidas") > 0,
+                                          F.element_at("reglas_incumplidas", 1)))
+             .drop("_jugador_conocido", "_articulo", "_precio"))
 
 validos = evaluados.filter("motivo IS NULL").drop("reglas_incumplidas", "motivo")
 invalidos = evaluados.filter("motivo IS NOT NULL")
