@@ -24,7 +24,7 @@
 
 # COMMAND ----------
 
-dbutils.widgets.dropdown("millones_filas", "5", ["1", "5", "10"], "Millones de filas de la tabla de pruebas")
+dbutils.widgets.dropdown("millones_filas", "10", ["1", "5", "10"], "Millones de filas de la tabla de pruebas")
 N = int(dbutils.widgets.get("millones_filas")) * 1_000_000
 BENCH = "respawn.silver.eventos_bench"
 JUGADORES = 5000
@@ -57,15 +57,21 @@ TBLPROPERTIES ('delta.autoOptimize.optimizeWrite' = 'false', 'delta.autoOptimize
 
 tipos = F.array(*[F.lit(t) for t in ["inicio_sesion", "fin_partida", "fin_partida", "compra", "cierre_sesion"]])
 plataformas = F.array(*[F.lit(p) for p in ["PC", "PlayStation", "Xbox", "Switch"]])
+
+def aleatorio(semilla: str, n: int):
+    """Entero pseudoaleatorio reproducible en [0, n): hash del id con una semilla distinta por columna,
+    para que las columnas sean independientes entre sí (con id*k % n saldrían correlacionadas)."""
+    return F.pmod(F.xxhash64(F.col("id"), F.lit(semilla)), F.lit(n)).cast("int")
+
 datos = (spark.range(N)
          .select(F.col("id").alias("id_evento"),
-                 F.format_string("p-%04d", (F.col("id") * 7919) % JUGADORES).alias("id_jugador"),
-                 F.element_at(tipos, (F.col("id") % 5 + 1).cast("int")).alias("tipo_evento"),
-                 F.date_add(F.lit("2026-01-01").cast("date"), ((F.col("id") * 31) % 300).cast("int")).alias("fecha_evento"),
-                 F.element_at(plataformas, (F.col("id") % 4 + 1).cast("int")).alias("plataforma"),
-                 ((F.col("id") * 13) % 5000).cast("int").alias("puntuacion"),
-                 ((F.col("id") * 17) % 40).cast("int").alias("bajas"),
-                 (((F.col("id") * 3) % 2500) / 100).cast("decimal(10,2)").alias("importe_eur"))
+                 F.format_string("p-%04d", aleatorio("jugador", JUGADORES)).alias("id_jugador"),
+                 F.element_at(tipos, aleatorio("tipo", 5) + 1).alias("tipo_evento"),
+                 F.date_add(F.lit("2026-01-01").cast("date"), aleatorio("fecha", 300)).alias("fecha_evento"),
+                 F.element_at(plataformas, aleatorio("plataforma", 4) + 1).alias("plataforma"),
+                 aleatorio("puntuacion", 5000).alias("puntuacion"),
+                 aleatorio("bajas", 40).alias("bajas"),
+                 (aleatorio("importe", 2500) / 100).cast("decimal(10,2)").alias("importe_eur"))
          .repartition(200))                                   # 200 ficheros con jugadores mezclados
 datos.write.mode("append").saveAsTable(BENCH)
 print(f"Tabla de pruebas creada con {N:,} filas")
