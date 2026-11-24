@@ -34,7 +34,7 @@ Tipos de evento: `inicio_sesion`, `fin_partida`, `compra`, `subida_rango`, `cier
 
 | Día | Qué trae | Qué demuestra |
 |---|---|---|
-| Día 1 | 100 jugadores y unos 2.000 eventos limpios | Carga inicial |
+| Día 1 | 100 jugadores y unos 540 eventos limpios | Carga inicial |
 | Día 2 | 12 jugadores nuevos, 5 que cambian de rango, eventos duplicados por reconexión y **tramposos** | MERGE, SCD2, reglas de calidad |
 | Día 3 | Nueva columna `version_juego` en los eventos y un fichero con errores de formato | Schema drift y tratamiento de errores en el Job |
 

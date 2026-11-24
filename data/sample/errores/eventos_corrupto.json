@@ -1,0 +1,3 @@
+{"id_evento": "e-bad-1", "id_jugador": "p-0001", "tipo_evento": "fin_partida"
+esto no es json
+{"id_evento": "e-bad-2", "id_jugador": "p-0002", "tipo_evento": "fin_partida", "ts_evento": "2026-11-03T18:00:00Z", "detalle": {"puntuacion": "mil"}}

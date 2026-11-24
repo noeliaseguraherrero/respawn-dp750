@@ -1,0 +1,8 @@
+id_jugador,nombre_usuario,email,pais,region,fecha_alta,rango,nivel,fecha_actualizacion
+p-0113,manuelasala113,manuelasala113@example.com,US,NA,2026-11-03,Oro,33,2026-11-03
+p-0114,hagusti114,hagusti114@example.com,US,NA,2026-11-03,Bronce,12,2026-11-03
+p-0115,companycaridad115,companycaridad115@example.com,ES,EU,2026-11-03,Bronce,15,2026-11-03
+p-0116,peirodafne116,peirodafne116@example.com,ES,EU,2026-11-03,Oro,50,2026-11-03
+p-0117,titocastell117,titocastell117@example.com,PT,EU,2026-11-03,Bronce,31,2026-11-03
+p-0033,emilianovergara33,emilianovergara33@example.com,IT,EU,2026-11-01,Diamante,53,2026-11-03
+p-0088,baudelioverdejo88,baudelioverdejo88@example.com,ES,EU,2026-11-01,Oro,39,2026-11-03

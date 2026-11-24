@@ -1,0 +1,13 @@
+id_articulo,nombre,categoria,precio_eur
+a-001,Skin Dragón Carmesí,skin,9.99
+a-002,Skin Ninja Neón,skin,7.99
+a-003,Skin Astronauta Retro,skin,12.99
+a-004,Espada de Plasma,arma,4.99
+a-005,Arco Glacial,arma,5.99
+a-006,Martillo Sísmico,arma,6.49
+a-007,Pase de Batalla T1,pase_batalla,14.99
+a-008,Pase de Batalla Premium T1,pase_batalla,24.99
+a-009,Pack 500 monedas,monedas,4.99
+a-010,Pack 1200 monedas,monedas,9.99
+a-011,Pack 3000 monedas,monedas,19.99
+a-012,Emote Baile Victoria,skin,2.99

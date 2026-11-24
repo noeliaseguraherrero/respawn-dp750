@@ -1,0 +1,51 @@
+{
+  "semilla": 42,
+  "articulos": 12,
+  "dia_1": {
+    "jugadores_fichero": 100,
+    "jugadores_nuevos": 100,
+    "eventos_fichero": 538,
+    "eventos_validos": 538,
+    "rechazos": 0,
+    "duplicados": 0
+  },
+  "dia_2": {
+    "jugadores_fichero": 20,
+    "jugadores_nuevos": 12,
+    "jugadores_suben_rango": [
+      "p-0019",
+      "p-0033",
+      "p-0070",
+      "p-0004",
+      "p-0051"
+    ],
+    "jugadores_sin_cambios_repetidos": 3,
+    "eventos_fichero": 424,
+    "eventos_validos": 398,
+    "errores": {
+      "R1_id_nulo": 2,
+      "R2_fecha_futura": 2,
+      "R3_puntuacion_imposible": 3,
+      "tramposos": [
+        "p-0022",
+        "p-0007",
+        "p-0051"
+      ],
+      "R4_compra_invalida": 2,
+      "R5_jugador_inexistente": 2,
+      "R6_duplicados": 15
+    }
+  },
+  "dia_3": {
+    "jugadores_fichero": 7,
+    "jugadores_nuevos": 5,
+    "jugadores_suben_rango": [
+      "p-0033",
+      "p-0088"
+    ],
+    "jugador_con_3_versiones_scd2": "p-0033",
+    "eventos_fichero": 304,
+    "eventos_validos": 304,
+    "columna_nueva": "version_juego"
+  }
+}
