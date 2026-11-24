@@ -1,0 +1,3 @@
+# Solo para ejecutar en local el generador de datos y los tests
+faker>=25.0
+pytest>=8.0

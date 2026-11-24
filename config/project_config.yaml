@@ -1,0 +1,10 @@
+# Configuración del proyecto Respawn (sin secretos)
+catalog: respawn
+schemas:
+  bronze: bronze
+  silver: silver
+  gold: gold
+  quality: quality
+volume: raw_files            # respawn.bronze.raw_files
+landing_path: /Volumes/respawn/bronze/raw_files
+regions: [EU, NA]
