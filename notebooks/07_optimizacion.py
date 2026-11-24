@@ -181,13 +181,27 @@ display(comparacion)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 4. Conclusiones y aplicación al proyecto
-# MAGIC - El beneficio principal es el **data skipping**: tras el clustering, los datos de un jugador quedan en muy
-# MAGIC   pocos ficheros y la consulta deja de leer la tabla entera. El tiempo absoluto en serverless está influido por
-# MAGIC   el arranque y la caché, por eso se mide la mediana de varias ejecuciones y se acompaña de los ficheros leídos.
-# MAGIC - Con los datos reales del proyecto (≈1.240 eventos) no compensa: la tabla cabe en un único fichero.
+# MAGIC ## 4. Resultados obtenidos (10 M filas, serverless, 24/11/2026) y conclusiones
+# MAGIC
+# MAGIC | Métrica | Antes | Después |
+# MAGIC |---|---|---|
+# MAGIC | Ficheros de la tabla | 200 | 2 (−99 %) |
+# MAGIC | Ficheros que contienen al jugador | 190 | 2 |
+# MAGIC | Tamaño | 73,8 MB | 67,8 MB |
+# MAGIC | Tiempo de la consulta (mediana) | 0,91 s | 1,0 s |
+# MAGIC
+# MAGIC - **Compactación**: `OPTIMIZE` reescribió 200 ficheros pequeños (≈0,4 MB cada uno) en 2 ficheros de ≈34 MB
+# MAGIC   (`numRemovedFiles = 200`, `numAddedFiles = 2` en el historial). Menos ficheros = menos aperturas y menos metadatos.
+# MAGIC - **Tiempo**: no mejora. Con 74 MB la consulta está dominada por la sobrecarga fija de serverless (planificación,
+# MAGIC   arranque de tareas), no por la lectura; leer 200 ficheros pequeños en paralelo cuesta lo mismo que leer 2.
+# MAGIC   Es un resultado esperable y se documenta tal cual: la optimización se nota a partir de gigabytes.
+# MAGIC - **Data skipping**: con solo 2 ficheros los dos contienen al jugador, así que aquí no hay ficheros que saltarse.
+# MAGIC   El beneficio aparece cuando la tabla tiene muchos ficheros grandes: el clustering agrupa a cada jugador en
+# MAGIC   pocos de ellos y las estadísticas min/max permiten descartar el resto (se comprueba en el Query Profile:
+# MAGIC   *files pruned*).
+# MAGIC - **Aplicación al proyecto**: con los datos reales (≈1.240 eventos) no compensa; la tabla cabe en un fichero.
 # MAGIC   Si el juego creciera, se aplicaría `CLUSTER BY (id_jugador, fecha_evento)` a `silver.eventos` y
-# MAGIC   `silver.fact_partidas`, y se dejaría el mantenimiento a *predictive optimization* de Unity Catalog.
+# MAGIC   `silver.fact_partidas`, y el mantenimiento quedaría a cargo de *predictive optimization* de Unity Catalog.
 # MAGIC - **Cómputo**: serverless es adecuado para cargas pequeñas e intermitentes como esta (sin clúster encendido
 # MAGIC   esperando); un clúster de trabajos dedicado solo compensaría con cargas grandes y constantes.
 # MAGIC - Para liberar espacio se puede borrar la tabla de pruebas: `DROP TABLE respawn.silver.eventos_bench`.
