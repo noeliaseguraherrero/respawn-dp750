@@ -42,6 +42,7 @@ def existe(tabla: str) -> bool:
 
 def merge_o_crear(df, tabla: str, claves: list[str], actualizar: bool = False) -> None:
     """Escritura incremental: crea la tabla la primera vez y después hace MERGE por la clave de negocio.
+    WITH SCHEMA EVOLUTION: si el origen trae una columna nueva (schema drift, p. ej. version_juego), se añade a la tabla.
     Con actualizar=False solo inserta las filas nuevas (los eventos no cambian una vez registrados)."""
     if not existe(tabla):
         df.write.saveAsTable(tabla)
@@ -50,7 +51,7 @@ def merge_o_crear(df, tabla: str, claves: list[str], actualizar: bool = False) -
     condicion = " AND ".join(f"t.{c} <=> s.{c}" for c in claves)
     clausula_update = "WHEN MATCHED THEN UPDATE SET *" if actualizar else ""
     spark.sql(f"""
-        MERGE INTO {tabla} t
+        MERGE WITH SCHEMA EVOLUTION INTO {tabla} t
         USING _origen s
         ON {condicion}
         {clausula_update}
@@ -98,6 +99,8 @@ eventos = (bronze.select(
         F.col("detalle.id_articulo").alias("id_articulo"),
         F.col("detalle.importe_eur").cast("decimal(10,2)").alias("importe_eur"),
         F.col("detalle.nuevo_rango").alias("nuevo_rango"),
+        # schema drift: version_juego solo existe desde el día 3 (en días anteriores queda NULL)
+        (F.col("version_juego") if "version_juego" in bronze.columns else F.lit(None).cast("string")).alias("version_juego"),
         "_fichero_origen", "_fecha_ingesta", "_dia_carga")
     .withColumn("fecha_evento", F.to_date("ts_evento"))                        # columnas derivadas
     .withColumn("hora_evento", F.hour("ts_evento")))

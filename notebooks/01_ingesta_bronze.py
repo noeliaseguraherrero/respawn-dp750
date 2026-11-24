@@ -18,7 +18,9 @@
 # COMMAND ----------
 
 dbutils.widgets.dropdown("dia", "1", ["1", "2", "3"], "Día de juego a publicar")
+dbutils.widgets.dropdown("inyectar_error", "no", ["no", "si"], "Inyectar fichero corrupto (demo)")
 DIA = int(dbutils.widgets.get("dia"))
+INYECTAR_ERROR = dbutils.widgets.get("inyectar_error") == "si"
 
 CATALOGO = "respawn"
 VOLUMEN = "/Volumes/respawn/bronze/raw_files"
@@ -49,6 +51,52 @@ for origen, destino in publicaciones:
         print("Publicado:", destino)
     else:
         print("Ya existía:", destino)
+
+# Demostración de errores: se deja además un fichero corrupto en landing
+if INYECTAR_ERROR:
+    corrupto = f"{LANDING}/eventos/eventos_corrupto_dia_{DIA}.json"
+    shutil.copy(f"{STAGING}/errores/eventos_corrupto.json", corrupto)
+    print("⚠️ Inyectado fichero corrupto:", corrupto)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 1b. Control de entrada: los ficheros JSON corruptos van a cuarentena
+# MAGIC Antes de ingerir se comprueba que cada línea de los ficheros de eventos es un JSON válido.
+# MAGIC Si un fichero tiene líneas rotas, se **mueve a `_cuarentena/`** y la tarea **falla a propósito**:
+# MAGIC el Job se detiene, no se procesan datos parciales y el equipo recibe la notificación.
+# MAGIC Una vez apartado el fichero, basta con **reparar la ejecución** (*Repair run*) para continuar.
+
+# COMMAND ----------
+
+import json
+
+CUARENTENA = f"{VOLUMEN}/_cuarentena"
+
+def lineas_corruptas(ruta: str) -> int:
+    malas = 0
+    with open(ruta, encoding="utf-8") as f:
+        for linea in f:
+            if linea.strip():
+                try:
+                    json.loads(linea)
+                except json.JSONDecodeError:
+                    malas += 1
+    return malas
+
+apartados = []
+for nombre in sorted(os.listdir(f"{LANDING}/eventos")):
+    ruta = f"{LANDING}/eventos/{nombre}"
+    malas = lineas_corruptas(ruta)
+    if malas:
+        os.makedirs(CUARENTENA, exist_ok=True)
+        shutil.move(ruta, f"{CUARENTENA}/{nombre}")
+        apartados.append(f"{nombre} ({malas} líneas no válidas)")
+
+if apartados:
+    raise ValueError("Ficheros corruptos enviados a cuarentena: " + ", ".join(apartados)
+                     + ". Revise el origen y repare la ejecución.")
+print("✅ Todos los ficheros de eventos son JSON válidos")
 
 # COMMAND ----------
 
