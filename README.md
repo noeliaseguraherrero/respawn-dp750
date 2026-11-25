@@ -1,4 +1,4 @@
-# 🎮 Respawn — Lakehouse de un videojuego en Databricks
+# Respawn — Lakehouse de un videojuego en Databricks
 
 > Proyecto final de la certificación **Microsoft DP-750: Azure Databricks Data Engineer Associate**.
 
