@@ -19,8 +19,8 @@
 # MAGIC |---|---|---|
 # MAGIC | R1 | `id_evento` e `id_jugador` no nulos | Registros incompletos o corruptos |
 # MAGIC | R2 | `ts_evento` no está en el futuro | Relojes manipulados |
-# MAGIC | R3 | `puntuacion <= duracion_seg * 5` y `bajas <= 60` | 🕹️ Puntuaciones imposibles (tramposos) |
-# MAGIC | R4 | Compra con `importe_eur > 0` e igual al precio del artículo | 💰 Compras fraudulentas |
+# MAGIC | R3 | `puntuacion <= duracion_seg * 5` y `bajas <= 60` | Puntuaciones imposibles (tramposos) |
+# MAGIC | R4 | Compra con `importe_eur > 0` e igual al precio del artículo | Compras fraudulentas |
 # MAGIC | R5 | `id_jugador` existe en el registro de jugadores | Jugadores fantasma |
 # MAGIC | R6 | Un solo registro por `id_evento` | Duplicados por reconexión |
 # MAGIC
@@ -214,15 +214,15 @@ comparacion = [("validos", esperado["eventos_validos"], validos.count()),
 comparacion += [(r, errores.get(r, 0), por_regla.get(r, 0)) for r in reglas]
 
 resultado = (spark.createDataFrame(comparacion, "metrica string, esperado long, obtenido long")
-             .withColumn("resultado", F.when(F.col("esperado") == F.col("obtenido"), "✅ OK")
-                                        .otherwise("❌ DIFERENCIA")))
+             .withColumn("resultado", F.when(F.col("esperado") == F.col("obtenido"), "OK")
+                                        .otherwise("DIFERENCIA")))
 display(resultado)
-assert resultado.filter("resultado != '✅ OK'").count() == 0, "La calidad no coincide con lo esperado"
+assert resultado.filter("resultado != 'OK'").count() == 0, "La calidad no coincide con lo esperado"
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 8. 🕹️ Los tramposos detectados
+# MAGIC ## 8. Los tramposos detectados
 
 # COMMAND ----------
 

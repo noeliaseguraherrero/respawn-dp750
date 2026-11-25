@@ -172,7 +172,7 @@
 # MAGIC | B | `respawn_analistas_eu` | solo EU, email enmascarado |
 # MAGIC | C | `respawn_analistas_eu` + `respawn_pii` | solo EU, email completo |
 # MAGIC
-# MAGIC ⚠️ Los cambios de grupo pueden tardar unos minutos en reflejarse.
+# MAGIC **Nota:** Los cambios de grupo pueden tardar unos minutos en reflejarse.
 
 # COMMAND ----------
 

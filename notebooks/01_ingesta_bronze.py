@@ -56,7 +56,7 @@ for origen, destino in publicaciones:
 if INYECTAR_ERROR:
     corrupto = f"{LANDING}/eventos/eventos_corrupto_dia_{DIA}.json"
     shutil.copy(f"{STAGING}/errores/eventos_corrupto.json", corrupto)
-    print("⚠️ Inyectado fichero corrupto:", corrupto)
+    print("Aviso: Inyectado fichero corrupto:", corrupto)
 
 # COMMAND ----------
 
@@ -96,7 +96,7 @@ for nombre in sorted(os.listdir(f"{LANDING}/eventos")):
 if apartados:
     raise ValueError("Ficheros corruptos enviados a cuarentena: " + ", ".join(apartados)
                      + ". Revise el origen y repare la ejecución.")
-print("✅ Todos los ficheros de eventos son JSON válidos")
+print("Todos los ficheros de eventos son JSON válidos")
 
 # COMMAND ----------
 
@@ -185,11 +185,11 @@ resultados.append((0, "articulos_raw", esperado["articulos"],
                    spark.table(f"{CATALOGO}.bronze.articulos_raw").count()))
 
 validacion = (spark.createDataFrame(resultados, "dia int, tabla string, filas_origen long, filas_bronze long")
-              .withColumn("resultado", F.when(F.col("filas_origen") == F.col("filas_bronze"), "✅ OK")
-                                         .otherwise("❌ DIFERENCIA")))
+              .withColumn("resultado", F.when(F.col("filas_origen") == F.col("filas_bronze"), "OK")
+                                         .otherwise("DIFERENCIA")))
 display(validacion)
 
-assert validacion.filter("resultado != '✅ OK'").count() == 0, "Bronze no coincide con el origen"
+assert validacion.filter("resultado != 'OK'").count() == 0, "Bronze no coincide con el origen"
 
 # COMMAND ----------
 

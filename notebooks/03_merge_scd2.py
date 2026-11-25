@@ -96,9 +96,9 @@ print("Filas de jugadores en el fichero del día:", origen.count())
 
 # MAGIC %sql
 # MAGIC SELECT
-# MAGIC   CASE WHEN d.id_jugador IS NULL                THEN '🆕 Jugador nuevo → INSERT'
-# MAGIC        WHEN d.hash_atributos <> o.hash_atributos THEN '🔁 Cambio de rango → cerrar versión + INSERT'
-# MAGIC        ELSE '⏸️ Sin cambios → no se toca' END AS accion,
+# MAGIC   CASE WHEN d.id_jugador IS NULL                THEN 'Jugador nuevo → INSERT'
+# MAGIC        WHEN d.hash_atributos <> o.hash_atributos THEN 'Cambio de rango → cerrar versión + INSERT'
+# MAGIC        ELSE 'Sin cambios → no se toca' END AS accion,
 # MAGIC   count(*) AS jugadores
 # MAGIC FROM origen_jugadores o
 # MAGIC LEFT JOIN respawn.silver.dim_jugador d ON d.id_jugador = o.id_jugador AND d.es_actual
@@ -176,10 +176,10 @@ comprobaciones = [
     ("jugadores con 2 versiones actuales", 0, duplicadas),
 ]
 resultado = (spark.createDataFrame(comprobaciones, "comprobacion string, esperado long, obtenido long")
-             .withColumn("resultado", F.when(F.col("esperado") == F.col("obtenido"), "✅ OK")
-                                        .otherwise("❌ DIFERENCIA")))
+             .withColumn("resultado", F.when(F.col("esperado") == F.col("obtenido"), "OK")
+                                        .otherwise("DIFERENCIA")))
 display(resultado)
-assert resultado.filter("resultado != '✅ OK'").count() == 0, "La dimensión SCD2 no es correcta"
+assert resultado.filter("resultado != 'OK'").count() == 0, "La dimensión SCD2 no es correcta"
 
 # COMMAND ----------
 
@@ -215,7 +215,7 @@ if DIA > 1:
         comparacion = spark.sql(f"""
             SELECT coalesce(a.id_jugador, h.id_jugador) AS id_jugador,
                    a.rango AS rango_dia_{DIA-1}, h.rango AS rango_dia_{DIA},
-                   CASE WHEN a.id_jugador IS NULL THEN '🆕 nuevo' ELSE '🔁 sube de rango' END AS cambio
+                   CASE WHEN a.id_jugador IS NULL THEN 'nuevo' ELSE 'sube de rango' END AS cambio
             FROM (SELECT * FROM {DIM} VERSION AS OF {v_ant} WHERE es_actual) a
             FULL OUTER JOIN (SELECT * FROM {DIM} WHERE es_actual) h USING (id_jugador)
             WHERE a.rango IS DISTINCT FROM h.rango

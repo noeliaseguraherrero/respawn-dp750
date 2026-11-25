@@ -44,8 +44,8 @@ Tipos de evento: `inicio_sesion`, `fin_partida`, `compra`, `subida_rango`, `cier
 |---|---|---|
 | R1 Identificadores | `id_evento` e `id_jugador` no nulos | Rechazo |
 | R2 Fecha coherente | `ts_evento` no está en el futuro | Rechazo |
-| R3 Puntuación imposible 🕹️ | `puntuacion <= duracion_seg * 5` y `bajas <= 60` | Rechazo (tramposo) |
-| R4 Compra válida 💰 | `importe_eur > 0` y coincide con el precio del artículo | Rechazo (tramposo) |
+| R3 Puntuación imposible | `puntuacion <= duracion_seg * 5` y `bajas <= 60` | Rechazo (tramposo) |
+| R4 Compra válida | `importe_eur > 0` y coincide con el precio del artículo | Rechazo (tramposo) |
 | R5 Jugador existente | `id_jugador` existe en `dim_jugador` | Rechazo (huérfano) |
 | R6 Unicidad | Un solo registro por `id_evento` | Deduplicación (se cuenta en las métricas) |
 

@@ -4,9 +4,9 @@
 # MAGIC
 # MAGIC | Data mart | Pregunta de negocio | Grano (una fila por…) |
 # MAGIC |---|---|---|
-# MAGIC | 💰 `gold.mart_economia` | ¿Cuánto vendemos, de qué y a qué tipo de jugador? | día × región × categoría × rango del comprador |
-# MAGIC | 📈 `gold.mart_retencion` | ¿Cuántos jugadores tenemos y cuántos vuelven? | día |
-# MAGIC | 🏆 `gold.mart_competitivo` | ¿Quiénes son los mejores jugadores? | jugador |
+# MAGIC | `gold.mart_economia` | ¿Cuánto vendemos, de qué y a qué tipo de jugador? | día × región × categoría × rango del comprador |
+# MAGIC | `gold.mart_retencion` | ¿Cuántos jugadores tenemos y cuántos vuelven? | día |
+# MAGIC | `gold.mart_competitivo` | ¿Quiénes son los mejores jugadores? | jugador |
 # MAGIC
 # MAGIC **Join "point-in-time" con la SCD2**: cada compra se asocia al rango que tenía el jugador
 # MAGIC **en la fecha de la compra**, no al rango actual. Por eso guardamos el historial en `dim_jugador`.
@@ -24,7 +24,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 💰 1. mart_economia
+# MAGIC ## 1. mart_economia
 
 # COMMAND ----------
 
@@ -54,7 +54,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 📈 2. mart_retencion
+# MAGIC ## 2. mart_retencion
 # MAGIC **Retención D1** = de los jugadores activos el día anterior, qué porcentaje vuelve a jugar hoy.
 
 # COMMAND ----------
@@ -101,7 +101,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 🏆 3. mart_competitivo
+# MAGIC ## 3. mart_competitivo
 
 # COMMAND ----------
 
@@ -133,7 +133,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## ✅ 4. Validaciones: Gold cuadra con Silver
+# MAGIC ## 4. Validaciones: Gold cuadra con Silver
 # MAGIC Un data mart no debe "inventar" ni "perder" datos al agregar.
 
 # COMMAND ----------
@@ -162,10 +162,10 @@ comprobaciones = [
 ]
 resultado = (spark.createDataFrame([(n, str(e), str(o)) for n, e, o in comprobaciones],
                                    "comprobacion string, silver string, gold string")
-             .withColumn("resultado", F.when(F.col("silver") == F.col("gold"), "✅ OK")
-                                        .otherwise("❌ DIFERENCIA")))
+             .withColumn("resultado", F.when(F.col("silver") == F.col("gold"), "OK")
+                                        .otherwise("DIFERENCIA")))
 display(resultado)
-assert resultado.filter("resultado != '✅ OK'").count() == 0, "Gold no cuadra con Silver"
+assert resultado.filter("resultado != 'OK'").count() == 0, "Gold no cuadra con Silver"
 
 # COMMAND ----------
 

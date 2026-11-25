@@ -61,7 +61,7 @@ if DIA >= 3:
 
 resultado = (spark.createDataFrame([(c, t, str(e), str(o)) for c, t, e, o in comprobaciones],
                                    "capa string, comprobacion string, esperado string, obtenido string")
-             .withColumn("resultado", F.when(F.col("esperado") == F.col("obtenido"), "✅ OK").otherwise("❌ ERROR"))
+             .withColumn("resultado", F.when(F.col("esperado") == F.col("obtenido"), "OK").otherwise("ERROR"))
              .withColumn("dia", F.lit(DIA))
              .withColumn("fecha_validacion", F.current_timestamp()))
 display(resultado)
@@ -71,6 +71,6 @@ display(resultado)
 # Historial de validaciones (útil para monitorizar el pipeline a lo largo del tiempo)
 resultado.write.mode("append").saveAsTable("respawn.quality.validaciones_pipeline")
 
-errores = resultado.filter("resultado != '✅ OK'").count()
+errores = resultado.filter("resultado != 'OK'").count()
 assert errores == 0, f"{errores} validaciones fallidas: revise quality.validaciones_pipeline"
-print(f"✅ Pipeline validado hasta el día {DIA}: {len(comprobaciones)} comprobaciones correctas")
+print(f"Pipeline validado hasta el día {DIA}: {len(comprobaciones)} comprobaciones correctas")

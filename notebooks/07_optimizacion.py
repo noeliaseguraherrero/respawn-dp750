@@ -20,7 +20,7 @@
 # MAGIC **tiempo** (mediana de 3 ejecuciones con jugadores distintos para no reutilizar resultados en caché)
 # MAGIC y el **Query Profile** de la consulta (enlace *See performance* de las celdas SQL).
 # MAGIC
-# MAGIC ⚠️ No se ejecuta `VACUUM`: borraría los ficheros antiguos y con ellos el *time travel* a las versiones previas.
+# MAGIC **Nota:** No se ejecuta `VACUUM`: borraría los ficheros antiguos y con ellos el *time travel* a las versiones previas.
 
 # COMMAND ----------
 

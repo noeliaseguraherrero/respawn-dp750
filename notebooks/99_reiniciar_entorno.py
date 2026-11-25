@@ -5,7 +5,7 @@
 # MAGIC Borra las tablas del proyecto, los checkpoints de Auto Loader y la carpeta `landing/` para
 # MAGIC **volver a ejecutar la simulación desde el día 1**. No borra el catálogo, los esquemas ni `_staging`.
 # MAGIC
-# MAGIC ⚠️ Usar solo para repetir la demostración desde cero.
+# MAGIC **Nota:** Usar solo para repetir la demostración desde cero.
 
 # COMMAND ----------
 
@@ -20,9 +20,14 @@ VOLUMEN = "/Volumes/respawn/bronze/raw_files"
 
 for esquema in ("bronze", "silver", "quality", "gold"):
     for fila in spark.sql(f"SHOW TABLES IN respawn.{esquema}").collect():
-        if not fila.isTemporary:
-            spark.sql(f"DROP TABLE IF EXISTS respawn.{esquema}.{fila.tableName}")
-            print("Borrada:", f"respawn.{esquema}.{fila.tableName}")
+        if fila.isTemporary:
+            continue
+        nombre = f"respawn.{esquema}.{fila.tableName}"
+        try:
+            spark.sql(f"DROP TABLE IF EXISTS {nombre}")
+        except Exception:                     # las vistas se borran con DROP VIEW
+            spark.sql(f"DROP VIEW IF EXISTS {nombre}")
+        print("Borrado:", nombre)
 
 for carpeta in ("_checkpoints", "landing"):
     ruta = f"{VOLUMEN}/{carpeta}"
