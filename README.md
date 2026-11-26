@@ -105,7 +105,7 @@ cambiando el parámetro `dia`:
 |---|---|---|---|
 | 1 | 1 | no | Carga inicial |
 | 2 | 2 | no | Duplicados, tramposos y cambios de rango (MERGE y SCD2) |
-| 3 | 3 | si | El Job falla por el fichero corrupto → **Repair run** → termina bien y aparece la columna nueva `version_juego` |
+| 3 | 3 | si | El Job falla por el fichero corrupto, que se mueve a cuarentena. Después, **Repair run** cambiando `inyectar_error` a `no`: termina bien y aparece la columna nueva `version_juego` |
 
 **6. Seguridad.**
 Primero hay que crear a mano tres grupos en `Settings → Identity and access → Groups` (pueden estar vacíos):
@@ -197,13 +197,15 @@ Las reglas R1–R5 están en `src/reglas_calidad.py` para poder probarlas con py
 ```
 01_ingesta_bronze ─► 02_silver_calidad ─► 03_merge_scd2 ─► 04_gold_marts ─► 06_validaciones
 ```
-Tiene los parámetros `dia` (1, 2, 3) e `inyectar_error` (no/si), un reintento por tarea, aviso por email si falla y una
+Tiene los parámetros `dia` (1, 2, 3) e `inyectar_error` (no/si), un reintento por tarea (menos la validación final), aviso por email si falla y una
 ejecución programada a las 06:00 (en pausa). Más detalle en [`jobs/configuracion.md`](jobs/configuracion.md).
 
 ![Job](docs/capturas/f9_01_job_tareas_y_configuracion.png)
 
 **Error y recuperación.** Con `inyectar_error=si`, la tarea 01 encuentra el fichero corrupto, lo manda a cuarentena y
-falla. El resto de tareas no se ejecuta, así que no se carga nada a medias. Con **Repair run** el Job continúa y termina bien.
+falla. El resto de tareas no se ejecuta, así que no se carga nada a medias. Para recuperarlo se hace **Repair run** cambiando antes
+el parámetro `inyectar_error` a `no`: solo se repiten las tareas que no terminaron y el Job acaba bien. Hay que cambiarlo porque,
+con `si`, la tarea 01 volvería a dejar el fichero corrupto en `landing/` y fallaría otra vez.
 
 ![Fallo y reparación](docs/capturas/f9_07_timeline_fallo_y_reparacion.png)
 
@@ -313,7 +315,7 @@ Todas las capturas están en [`docs/capturas/`](docs/capturas/) (el prefijo `fN_
 
 ```
 ├── .github/workflows/   Tests automáticos en GitHub Actions
-├── config/              Configuración del proyecto (sin secretos)
+├── config/              Nombres del catálogo, esquemas y rutas (sin secretos)
 ├── data/sample/         Datos de ejemplo de los 3 días y resumen esperado
 ├── docs/                Diseño, arquitectura, informe, optimización, capturas y evidencias
 ├── jobs/                Script que crea el Job y su documentación

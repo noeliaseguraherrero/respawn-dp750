@@ -35,8 +35,11 @@ El Job se crea desde el repositorio ejecutando el notebook **`jobs/crear_job.py`
 
 1. Ejecutar con `dia=3` e `inyectar_error=si` → la tarea 01 detecta el fichero corrupto, lo mueve a
    `/Volumes/respawn/bronze/raw_files/_cuarentena/` y falla. Las tareas siguientes no se ejecutan.
-2. Pulsar **Repair run** → la tarea 01 ya no encuentra el fichero (está en cuarentena) y el pipeline termina correctamente,
-   procesando además el *schema drift* del día 3 (`version_juego`).
+2. Pulsar **Repair run** y, en los parámetros, cambiar `inyectar_error` a `no`. La tarea 01 ya no encuentra el fichero
+   (está en cuarentena) y el pipeline termina correctamente, procesando además el *schema drift* del día 3 (`version_juego`).
+
+   **Importante:** si se repara dejando `inyectar_error=si`, la tarea 01 vuelve a copiar el fichero corrupto en `landing/`
+   y falla otra vez.
 
 ## Pasos manuales previos
 

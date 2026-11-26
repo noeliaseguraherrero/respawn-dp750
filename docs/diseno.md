@@ -1,4 +1,4 @@
-# Diseño del proyecto Respawn (Fase 1)
+# Diseño del proyecto Respawn
 
 ## 1. Caso de negocio
 
@@ -34,9 +34,10 @@ Tipos de evento: `inicio_sesion`, `fin_partida`, `compra`, `subida_rango`, `cier
 
 | Día | Qué trae | Qué demuestra |
 |---|---|---|
-| Día 1 | 100 jugadores y unos 540 eventos limpios | Carga inicial |
-| Día 2 | 12 jugadores nuevos, 5 que cambian de rango, eventos duplicados por reconexión y **tramposos** | MERGE, SCD2, reglas de calidad |
-| Día 3 | Nueva columna `version_juego` en los eventos y un fichero con errores de formato | Schema drift y tratamiento de errores en el Job |
+| Día 1 | 100 jugadores y 538 eventos limpios | Carga inicial |
+| Día 2 | 12 jugadores nuevos, 5 que suben de rango, 15 eventos duplicados por reconexión y 11 eventos con errores (3 de ellos de **tramposos**) | MERGE, SCD2, reglas de calidad |
+| Día 3 | 5 jugadores nuevos, 2 subidas de rango y una columna nueva `version_juego` en los eventos | Schema drift |
+| Cualquier día | Con el parámetro `inyectar_error=si`, el Job deja además un JSON roto (`data/sample/errores/eventos_corrupto.json`) | Tratamiento de errores: cuarentena y Repair run |
 
 ## 4. Reglas de calidad ("detector de tramposos")
 
@@ -56,24 +57,28 @@ Los rechazos van a `quality.rechazos` junto con el motivo, y los recuentos de ca
 ```
 respawn                          (catálogo)
 ├── bronze
-│   ├── raw_files                (VOLUMEN gestionado: ficheros de entrada)
+│   ├── raw_files                (VOLUMEN gestionado: _staging/, landing/, _checkpoints/, _cuarentena/)
 │   ├── jugadores_raw
 │   ├── eventos_raw
 │   └── articulos_raw
 ├── silver
 │   ├── eventos                  (limpios y deduplicados)
-│   ├── dim_jugador              (SCD Tipo 2: historial de rango)
-│   ├── dim_articulo
+│   ├── dim_jugador              (SCD Tipo 2: historial de rango, Change Data Feed activado)
+│   ├── dim_articulo             (SCD Tipo 1)
 │   ├── fact_partidas
-│   └── fact_compras
+│   ├── fact_compras
+│   └── control_cargas           (versión Delta de cada día, para el time travel)
 ├── quality
 │   ├── rechazos
-│   └── metricas_calidad
+│   ├── metricas_calidad
+│   └── validaciones_pipeline    (historial de las validaciones de extremo a extremo)
 └── gold
-    ├── mart_economia            (ventas por día, categoría y región)
-    ├── mart_retencion           (jugadores activos al día, altas, retención D1)
-    ├── mart_competitivo         (ranking por puntuación y rango)
-    └── v_mart_*_analistas       (vistas para analistas)
+    ├── mart_economia            (ventas por día, región, categoría y rango del comprador)
+    ├── mart_retencion           (jugadores activos, nuevos y retención de un día para otro)
+    ├── mart_competitivo         (ranking global y por región)
+    ├── v_jugadores_analistas    (vistas para analistas: filtro por región y email enmascarado)
+    ├── v_economia_analistas
+    └── v_competitivo_analistas
 ```
 
 **Convenciones de nombres**
@@ -84,7 +89,7 @@ respawn                          (catálogo)
 
 **Managed frente a external:** todos los objetos son *managed*. Databricks Free Edition no permite configurar *external locations* propias, y las tablas gestionadas dejan a Unity Catalog el ciclo de vida, la optimización y la limpieza. Los ficheros de entrada se guardan en un volumen gestionado.
 
-**Cómputo:** serverless, que es el que ofrece la Free Edition. Arranca en segundos, se factura por uso y no hay que administrar clústeres. Las consultas de los marts se ejecutan en el SQL warehouse serverless.
+**Cómputo:** serverless, que es el que ofrece la Free Edition. Arranca en segundos, se factura por uso y no hay que administrar clústeres. Encaja con el caso: cargas pequeñas que se ejecutan una vez al día.
 
 ## 6. Modelo dimensional (Silver/Gold)
 
@@ -96,8 +101,12 @@ respawn                          (catálogo)
                   └───────────► gold.mart_* ◄──┘
 ```
 
-## 7. Flujo (Lakeflow Job "simular_dia_de_juego", parámetro `dia`)
+## 7. Flujo (Lakeflow Job `respawn_simular_dia_de_juego`)
 
 ```
-01_ingesta_bronze → 02_silver_calidad → 03_merge_scd2 → 04_gold_marts → 05_validaciones
+01_ingesta_bronze → 02_silver_calidad → 03_merge_scd2 → 04_gold_marts → 06_validaciones
 ```
+
+- Parámetros: `dia` (1, 2, 3) e `inyectar_error` (no / si). Detalle completo en `jobs/configuracion.md`.
+- Fuera del Job se ejecutan una sola vez: `05_seguridad_gobierno` (permisos, vistas y etiquetas) y, de forma opcional,
+  `07_optimizacion` (medición de liquid clustering + OPTIMIZE) y `99_reiniciar_entorno` (empezar de cero).
